@@ -410,6 +410,53 @@ legend.field__label {
   border-bottom: none;
 }
 
+/* ---------- Timetable week nav + filters (Increment 0) ---------- */
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.week-nav__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 220px;
+}
+
+.week-nav__range {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.week-nav__select {
+  font-size: 12.5px;
+  padding: 4px 8px;
+  color: var(--ink-soft);
+  max-width: 260px;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filters-row .field__input {
+  width: auto;
+  min-width: 160px;
+  flex: 1 1 180px;
+}
+
+.session-card__courses {
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
 /* ---------- Timetable grid (Increment 0) ---------- */
 
 .timetable-grid {

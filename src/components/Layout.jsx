@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Footer from './Footer';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -13,7 +14,8 @@ export default function Layout({ children }) {
   const lecturerLinks = [
     { to: '/lecturer', label: 'Dashboard' },
     { to: '/lecturer/timetable', label: 'Timetable' },
-    { to: '/lecturer/requests', label: 'Constraint Requests' },
+    { to: '/lecturer/requests', label: 'Submit Constraint' },
+    { to: '/lecturer/requests/history', label: 'My Requests' },
   ];
 
   const teamLinks = [
@@ -38,7 +40,7 @@ export default function Layout({ children }) {
               <NavLink
                 key={link.to}
                 to={link.to}
-                end={link.to === '/lecturer' || link.to === '/timetabling-team'}
+                end={link.to === '/lecturer' || link.to === '/timetabling-team' || link.to === '/lecturer/requests'}
                 className={({ isActive }) => `app-header__link${isActive ? ' is-active' : ''}`}
               >
                 {link.label}
@@ -57,6 +59,8 @@ export default function Layout({ children }) {
       </header>
 
       <main className="app-main">{children}</main>
+
+      <Footer />
     </div>
   );
 }

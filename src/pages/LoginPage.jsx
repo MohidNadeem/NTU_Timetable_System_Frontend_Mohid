@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Footer from '../components/Footer';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -74,6 +75,8 @@ export default function LoginPage() {
           Contact the timetabling team if you don't have login credentials.
         </p>
       </div>
+
+      <Footer />
     </div>
   );
 }

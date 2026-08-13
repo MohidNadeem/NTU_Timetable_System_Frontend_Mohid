@@ -76,7 +76,7 @@ export default function TimetablePage() {
       <div className="page">
         <h1 className="page__title">Timetable</h1>
         <p className="page__subtitle">
-          Mock/seeded timetable data — stands in for NTU's live feed during prototype development.
+          Mock timetable data
         </p>
 
         <div className="week-nav">

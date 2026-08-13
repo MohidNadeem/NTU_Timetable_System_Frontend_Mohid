@@ -46,3 +46,8 @@ export function findCurrentWeekIndex() {
   const nextIdx = WEEKS.findIndex((w) => today < w.monday);
   return nextIdx !== -1 ? nextIdx : 0;
 }
+
+// scoping the week list down to a single block 
+export function weeksForBlock(block) {
+  return WEEKS.filter((w) => w.block === block);
+}

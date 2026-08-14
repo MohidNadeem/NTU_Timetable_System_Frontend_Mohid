@@ -181,11 +181,51 @@ h1, h2, h3 {
 }
 
 .card__header-row .card__title {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .card__header-row .page__subtitle {
-    margin-top: 4px;
+  margin-top: 4px;
+}
+
+/* ---------- Quick links (TT dashboard) ---------- */
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.quick-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.quick-link:hover {
+  border-color: var(--ntu-pink);
+}
+
+.quick-link--warn .quick-link__count {
+  color: var(--danger);
+}
+
+.quick-link__count {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.quick-link__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
 }
 
 .stat-grid {
@@ -469,6 +509,67 @@ legend.field__label {
 
 .table tr:last-child td {
   border-bottom: none;
+}
+
+.table--clickable tbody tr {
+  cursor: pointer;
+}
+
+.table--clickable tbody tr:hover {
+  background: var(--bg);
+}
+
+/* ---------- Detail grid (TT request/session detail pages) ---------- */
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px 20px;
+  margin: 0;
+}
+
+.detail-grid dt {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--ink-soft);
+  margin-bottom: 2px;
+}
+
+.detail-grid dd {
+  font-size: 14px;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ---------- Violation compare (Violations page) ---------- */
+
+.violation-compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.violation-compare__col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.violation-compare__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--ink-soft);
 }
 
 /* ---------- Timetable week nav + filters (Increment 0) ---------- */

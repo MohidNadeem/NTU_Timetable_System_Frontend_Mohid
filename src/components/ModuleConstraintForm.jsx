@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import WeekPicker from './WeekPicker';
 import {
   DAYS, DURATIONS, TIME_SLOTS, LEARNING_ACTIVITIES,
   ROOM_TYPES, ROOM_LAYOUTS, ROOM_FEATURES,
 } from '../api/constraintOptions';
+
+// weekMode is fixed to ALL_REMAINING for constraints
+// a constraint is a standing requirement for the module going forward, not a one-off week exception.
+// Single / Multiple week scope will be for change requests (Increment 2)
+const CONSTRAINT_WEEK_MODE = 'ALL_REMAINING';
 
 const initialState = {
   departmentId: '',
   primaryModuleId: '',
   linkedModuleId: '',
   additionalLinkedModules: '',
-  weekMode: 'ALL_REMAINING',
-  weeks: [],
   dayOfWeek: '',
   startTime: '',
   durationHours: 2,
@@ -64,13 +66,12 @@ export default function ModuleConstraintForm({ onSubmitted }) {
   const block = selectedPrimaryModule?.block ?? null;
 
   const handlePrimaryModuleChange = (e) => {
-    setForm((f) => ({ ...f, primaryModuleId: e.target.value, weekMode: 'ALL_REMAINING', weeks: [] }));
+    setForm((f) => ({ ...f, primaryModuleId: e.target.value }));
   };
 
   const validate = () => {
     if (!form.departmentId) return 'Select a department';
     if (!form.primaryModuleId) return 'Select a primary module';
-    if (form.weekMode !== 'ALL_REMAINING' && form.weeks.length === 0) return 'Select at least one week';
     if (!form.dayOfWeek) return 'Select a day';
     if (!form.startTime) return 'Select a time';
     if (!form.learningActivity) return 'Select a learning activity';
@@ -95,8 +96,8 @@ export default function ModuleConstraintForm({ onSubmitted }) {
         linkedModuleId: form.linkedModuleId ? Number(form.linkedModuleId) : null,
         additionalLinkedModules: form.additionalLinkedModules || null,
         block,
-        weekMode: form.weekMode,
-        weeks: form.weekMode === 'ALL_REMAINING' ? [] : form.weeks,
+        weekMode: CONSTRAINT_WEEK_MODE,
+        weeks: [],
         dayOfWeek: form.dayOfWeek,
         startTime: form.startTime,
         durationHours: Number(form.durationHours),
@@ -157,13 +158,12 @@ export default function ModuleConstraintForm({ onSubmitted }) {
         </label>
       </div>
 
-      <WeekPicker
-        block={block}
-        weekMode={form.weekMode}
-        weeks={form.weeks}
-        onWeekModeChange={(v) => setForm((f) => ({ ...f, weekMode: v }))}
-        onWeeksChange={(v) => setForm((f) => ({ ...f, weeks: v }))}
-      />
+      {block && (
+        <p className="field__hint">
+          This applies to all remaining weeks in Block {block}.
+        </p>
+      )}
+
 
       <div className="form-grid">
         <label className="field">

@@ -53,6 +53,7 @@ export default function MyConstraintRequestsPage() {
                   <th>Summary</th>
                   <th>Department</th>
                   <th>Status</th>
+                  <th>Decision reason</th>
                   <th>Submitted</th>
                 </tr>
               </thead>
@@ -63,6 +64,7 @@ export default function MyConstraintRequestsPage() {
                     <td>{summarise(r)}</td>
                     <td>{r.departmentCode}</td>
                     <td><span className={`badge badge--${r.status.toLowerCase()}`}>{STATUS_LABELS[r.status]}</span></td>
+                    <td>{r.reasonComment || '—'}</td>
                     <td>{new Date(r.createdAt).toLocaleString()}</td>
                   </tr>
                 ))}

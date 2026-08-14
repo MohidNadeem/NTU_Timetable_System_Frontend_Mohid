@@ -10,6 +10,9 @@ import TimetablePage from './pages/TimetablePage';
 import LecturerRequestsPage from './pages/LecturerRequestsPage';
 import MyConstraintRequestsPage from './pages/MyConstraintRequestsPage';
 import TimetablingTeamRequestsPage from './pages/TimetablingTeamRequestsPage';
+import RequestDetailPage from './pages/RequestDetailPage';
+import ViolationsPage from './pages/ViolationsPage';
+import UpdateSessionPage from './pages/UpdateSessionPage';
 
 // sending "/" to the right place based on auth state, so it's never a dead-end route
 function HomeRedirect() {
@@ -84,6 +87,30 @@ export default function App() {
             element={
               <ProtectedRoute allowedRole="TIMETABLING_TEAM">
                 <TimetablingTeamRequestsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timetabling-team/requests/:id"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <RequestDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timetabling-team/violations"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <ViolationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timetabling-team/sessions/:sessionId/update"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <UpdateSessionPage />
               </ProtectedRoute>
             }
           />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { DAYS } from '../api/constraintOptions';
 
 export default function PersonalConstraintForm({ onSubmitted }) {
   const { user } = useAuth();
@@ -10,6 +11,13 @@ export default function PersonalConstraintForm({ onSubmitted }) {
   const [departmentId, setDepartmentId] = useState('');
   const [description, setDescription] = useState('');
   const [reason, setReason] = useState('');
+
+  const [unavailableDays, setUnavailableDays] = useState([]);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [fromTime, setFromTime] = useState('');
+  const [toTime, setToTime] = useState('');
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,6 +28,12 @@ export default function PersonalConstraintForm({ onSubmitted }) {
       .finally(() => setLoadingOptions(false));
   }, []);
 
+  const toggleDay = (day) => {
+    setUnavailableDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -29,10 +43,20 @@ export default function PersonalConstraintForm({ onSubmitted }) {
         departmentId: Number(departmentId),
         description,
         reason,
+        unavailableDays: unavailableDays.length > 0 ? unavailableDays : null,
+        unavailableFromDate: fromDate || null,
+        unavailableToDate: toDate || null,
+        unavailableFromTime: fromTime || null,
+        unavailableToTime: toTime || null,
       });
       setDepartmentId('');
       setDescription('');
       setReason('');
+      setUnavailableDays([]);
+      setFromDate('');
+      setToDate('');
+      setFromTime('');
+      setToTime('');
       onSubmitted();
     } catch (err) {
       setError(err.message);
@@ -90,6 +114,39 @@ export default function PersonalConstraintForm({ onSubmitted }) {
           required
         />
       </label>
+
+      <fieldset className="field">
+        <legend className="field__label">Day(s) unavailable (optional)</legend>
+        {DAYS.map((d) => (
+          <label key={d.value} className="checkbox">
+            <input
+              type="checkbox"
+              checked={unavailableDays.includes(d.value)}
+              onChange={() => toggleDay(d.value)}
+            />
+            {d.label}
+          </label>
+        ))}
+      </fieldset>
+
+      <div className="form-grid">
+        <label className="field">
+          <span className="field__label">From date (optional)</span>
+          <input className="field__input" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        </label>
+        <label className="field">
+          <span className="field__label">To date (optional)</span>
+          <input className="field__input" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+        </label>
+        <label className="field">
+          <span className="field__label">From time (optional)</span>
+          <input className="field__input" type="time" value={fromTime} onChange={(e) => setFromTime(e.target.value)} />
+        </label>
+        <label className="field">
+          <span className="field__label">To time (optional)</span>
+          <input className="field__input" type="time" value={toTime} onChange={(e) => setToTime(e.target.value)} />
+        </label>
+      </div>
 
       {error && <p className="field__error">{error}</p>}
 

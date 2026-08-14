@@ -81,3 +81,17 @@ export const STATUS_LABELS = {
   REJECTED: 'Rejected',
   COMPLETE: 'Complete',
 };
+
+export const ALL_STATUSES = Object.keys(STATUS_LABELS);
+
+// matches ConstraintRequestService.updateStatus's backend validation - reason becomes required for these two
+export const STATUSES_REQUIRING_REASON = ['ACCEPTED', 'REJECTED'];
+
+export const SESSION_TYPE_LABELS = {
+  LECTURE: 'Lecture',
+  SEMINAR: 'Seminar',
+  LAB: 'Lab',
+  TUTORIAL: 'Tutorial',
+  SURGERY: 'Surgery',
+  PROJECT: 'Project',
+};

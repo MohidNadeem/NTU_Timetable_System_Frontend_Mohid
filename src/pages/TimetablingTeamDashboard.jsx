@@ -34,6 +34,10 @@ export default function TimetablingTeamDashboard() {
             <span className="quick-link__count">{dashboard.violationCount}</span>
             <span className="quick-link__label">Constraint Violations →</span>
           </Link>
+          <Link className="quick-link quick-link--warn" to="/timetabling-team/changes-in-queue">
+            <span className="quick-link__count">{dashboard.changesInQueueCount}</span>
+            <span className="quick-link__label">Changes in Queue →</span>
+          </Link>
           <Link className="quick-link" to="/timetabling-team/timetable">
             <span className="quick-link__label">View Timetable →</span>
           </Link>

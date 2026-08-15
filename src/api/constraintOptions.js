@@ -28,6 +28,7 @@ export const LEARNING_ACTIVITIES = [
   'Surgery',
   'Workshop',
   'Assessment',
+  'Drop-in',
   'Other',
 ];
 
@@ -95,3 +96,52 @@ export const SESSION_TYPE_LABELS = {
   SURGERY: 'Surgery',
   PROJECT: 'Project',
 };
+
+// ---- Change Request options (Increment 2)
+
+export const ACADEMIC_PERIODS = [
+  { value: 'HALF_YEAR_1', label: 'Half Year 1' },
+  { value: 'HALF_YEAR_2', label: 'Half Year 2' },
+  { value: 'FULL_YEAR', label: 'Full Year' },
+];
+
+export const PREFERRED_ROOM_ANSWERS = [
+  { value: 'YES', label: 'Yes' },
+  { value: 'NO', label: 'No' },
+  { value: 'ONLINE', label: 'Online' },
+];
+
+// also doubles as the standard filter category on both lecturer and Timetabling Team views.
+export const CHANGE_CATEGORIES = [
+  { value: 'SESSION_TIME', label: 'Session time' },
+  { value: 'CLASHES', label: 'Clashes' },
+  { value: 'ROOM_TYPE', label: 'Room type' },
+  { value: 'ADDITIONAL_SESSION', label: 'Additional session' },
+  { value: 'ROOM_BOOKING', label: 'Room booking' },
+  { value: 'STUDENT_ALLOCATION', label: 'Students are not allocated correctly to groups' },
+  { value: 'STAFF_CHANGE', label: 'Staff change', requiresApproval: true },
+  { value: 'SESSION_DATE', label: 'Session date', requiresApproval: true },
+  { value: 'SESSION_REMOVAL', label: 'Session removal', requiresApproval: true },
+  { value: 'MERGE_SESSIONS_GROUPS', label: 'Merge sessions/groups', requiresApproval: true },
+  { value: 'OTHER', label: 'Other' },
+];
+
+export function changeCategoryLabel(value) {
+  return CHANGE_CATEGORIES.find((c) => c.value === value)?.label ?? value;
+}
+
+// Effect calculator labels (Violations / Changes in Queue / View Effect)
+export const ACTION_TYPE_LABELS = {
+  NONE: 'Nothing to do',
+  UPDATE_SESSION: 'Update session',
+  ADD_SESSION: 'Add session',
+  MANUAL_REVIEW: 'Needs manual review',
+};
+
+// Room dropdown ordering (Update Session / Add Session)
+export function orderRoomsBySuggestion(allRooms, suggestedNames = [], currentRoomName = null) {
+  const priority = suggestedNames.length > 0 ? suggestedNames : (currentRoomName ? [currentRoomName] : []);
+  const priorityRooms = priority.map((name) => allRooms.find((r) => r.name === name)).filter(Boolean);
+  const rest = allRooms.filter((r) => !priority.includes(r.name));
+  return { ordered: [...priorityRooms, ...rest], defaultId: priorityRooms[0]?.id ?? null };
+}

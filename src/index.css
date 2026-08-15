@@ -82,7 +82,8 @@ h1, h2, h3 {
 
 .app-header__nav {
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 2px;
   flex: 1;
 }
 

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { api } from '../api/client';
-import { STATUS_LABELS } from '../api/constraintOptions';
+import { STATUS_LABELS, ALL_STATUSES } from '../api/constraintOptions';
 
 // building a one-line summary per request kind
 function summarise(r) {
@@ -18,6 +18,8 @@ export default function MyConstraintRequestsPage() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [kindFilter, setKindFilter] = useState('');
 
   useEffect(() => {
     api.get('/lecturer/requests/constraints')
@@ -25,6 +27,12 @@ export default function MyConstraintRequestsPage() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  const filtered = useMemo(() => requests
+    .filter((r) => !statusFilter || r.status === statusFilter)
+    .filter((r) => !kindFilter || r.constraintKind === kindFilter),
+    [requests, statusFilter, kindFilter]
+  );
 
   return (
     <Layout>
@@ -37,15 +45,27 @@ export default function MyConstraintRequestsPage() {
           <Link className="btn btn--primary" to="/lecturer/requests">Submit a constraint</Link>
         </div>
 
+        <div className="filters-row">
+          <select className="field__input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">All statuses</option>
+            {ALL_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
+          </select>
+          <select className="field__input" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}>
+            <option value="">All kinds</option>
+            <option value="MODULE">Module-based</option>
+            <option value="PERSONAL">Personal</option>
+          </select>
+        </div>
+
         <div className="card">
           {loading && <p className="status">Loading…</p>}
           {error && <p className="status status--error">{error}</p>}
 
-          {!loading && !error && requests.length === 0 && (
-            <p className="card__body">No constraint requests submitted yet.</p>
+          {!loading && !error && filtered.length === 0 && (
+            <p className="card__body">No constraint requests match this filter.</p>
           )}
 
-          {!loading && requests.length > 0 && (
+          {!loading && filtered.length > 0 && (
             <table className="table">
               <thead>
                 <tr>
@@ -58,7 +78,7 @@ export default function MyConstraintRequestsPage() {
                 </tr>
               </thead>
               <tbody>
-                {requests.map((r) => (
+                {filtered.map((r) => (
                   <tr key={r.id}>
                     <td>{r.constraintKind === 'MODULE' ? 'Module-based' : 'Personal'}</td>
                     <td>{summarise(r)}</td>

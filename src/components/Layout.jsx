@@ -8,6 +8,7 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [violationCount, setViolationCount] = useState(0);
+  const [changesInQueueCount, setChangesInQueueCount] = useState(0);
 
   const handleLogout = () => {
     logout();
@@ -19,6 +20,9 @@ export default function Layout({ children }) {
     if (user?.role !== 'TIMETABLING_TEAM') return;
     api.get('/timetabling-team/violations')
       .then((v) => setViolationCount(v.length))
+      .catch(() => {}); // nav badge is a nice-to-have - a failed fetch here shouldn't break the whole layout
+    api.get('/timetabling-team/changes-in-queue')
+      .then((c) => setChangesInQueueCount(c.length))
       .catch(() => {});
   }, [user]);
 
@@ -27,16 +31,29 @@ export default function Layout({ children }) {
     { to: '/lecturer/timetable', label: 'Timetable' },
     { to: '/lecturer/requests', label: 'Submit Constraint' },
     { to: '/lecturer/requests/history', label: 'My Requests' },
+    { to: '/lecturer/requests/changes', label: 'Submit Change' },
+    { to: '/lecturer/requests/changes/history', label: 'My Changes' },
   ];
 
   const teamLinks = [
     { to: '/timetabling-team', label: 'Dashboard' },
     { to: '/timetabling-team/timetable', label: 'Timetable' },
-    { to: '/timetabling-team/requests', label: 'Requests' },
+    { to: '/timetabling-team/requests', label: 'Constraints' },
+    { to: '/timetabling-team/change-requests', label: 'Changes' },
     { to: '/timetabling-team/violations', label: violationCount > 0 ? `Violations (${violationCount})` : 'Violations' },
+    { to: '/timetabling-team/changes-in-queue', label: changesInQueueCount > 0 ? `Changes in Queue (${changesInQueueCount})` : 'Changes in Queue' },
+    { to: '/timetabling-team/academic-year', label: 'Year Settings' },
   ];
 
   const links = user?.role === 'LECTURER' ? lecturerLinks : teamLinks;
+
+  // routes with sub-pages (e.g. /requests/:id) need exact matching so the parent link
+  // doesn't stay highlighted while on a child page
+  const exactMatchRoutes = new Set([
+    '/lecturer', '/timetabling-team',
+    '/lecturer/requests', '/lecturer/requests/changes',
+    '/timetabling-team/requests', '/timetabling-team/change-requests',
+  ]);
 
   return (
     <div className="app-shell">
@@ -52,7 +69,7 @@ export default function Layout({ children }) {
               <NavLink
                 key={link.to}
                 to={link.to}
-                end={link.to === '/lecturer' || link.to === '/timetabling-team' || link.to === '/lecturer/requests' || link.to === '/timetabling-team/requests'}
+                end={exactMatchRoutes.has(link.to)}
                 className={({ isActive }) => `app-header__link${isActive ? ' is-active' : ''}`}
               >
                 {link.label}

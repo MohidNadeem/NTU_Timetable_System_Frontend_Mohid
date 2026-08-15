@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import WeekPicker from '../components/WeekPicker';
 import { api } from '../api/client';
-import { DAYS } from '../api/constraintOptions';
+import { DAYS, orderRoomsBySuggestion } from '../api/constraintOptions';
 
 function addHours(timeStr, hours) {
   if (!timeStr) return '';
@@ -22,6 +22,7 @@ export default function UpdateSessionPage() {
 
   const [session, setSession] = useState(null);
   const [rooms, setRooms] = useState([]);
+  const [relatedRequest, setRelatedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -37,23 +38,40 @@ export default function UpdateSessionPage() {
 
   useEffect(() => {
     const calls = [api.get(`/timetabling-team/sessions/${sessionId}`), api.get('/rooms')];
-    if (relatedRequestId) calls.push(api.get(`/timetabling-team/requests/constraints/${relatedRequestId}`));
+    if (relatedRequestId) calls.push(api.get(`/timetabling-team/requests/${relatedRequestId}`));
 
     Promise.all(calls)
       .then(([s, r, req]) => {
         setSession(s);
         setRooms(r);
+        setRelatedRequest(req ?? null);
 
-        if (req) {
-          // prefilling from the constraint request that flagged this violation
-          // including the room, which was previously left as "keep current" by default
+        // working out which room(s) to suggest first in the dropdown
+        const suggestedNames = req?.constraintKind === 'MODULE' ? (req.allowedRoomNames ?? [])
+          : req?.specificRoomName ? [req.specificRoomName]
+          : [];
+        const { defaultId } = orderRoomsBySuggestion(r, suggestedNames, s.roomName);
+        const fallbackRoomId = r.find((room) => room.name === s.roomName)?.id ?? '';
+        setRoomId(defaultId ?? fallbackRoomId);
+
+        if (req && req.type === 'CONSTRAINT' && req.constraintKind === 'MODULE') {
           setDayOfWeek(req.dayOfWeek ?? s.dayOfWeek);
           setStartTime((req.startTime ?? s.startTime)?.slice(0, 5));
           setEndTime(addHours((req.startTime ?? s.startTime)?.slice(0, 5), req.durationHours ?? 2));
-          setRoomId(req.specificRoomId ?? '');
-          // ALL_REMAINING here regardless of the original constraint's weekMode
           setWeekMode('ALL_REMAINING');
           setWeeks([]);
+        } else if (req && req.type === 'CONSTRAINT' && req.constraintKind === 'PERSONAL') {
+          setDayOfWeek(s.dayOfWeek);
+          setStartTime(s.startTime?.slice(0, 5));
+          setEndTime(s.endTime?.slice(0, 5));
+          setWeekMode('ALL_REMAINING');
+          setWeeks([]);
+        } else if (req && req.type === 'CHANGE') {
+          setDayOfWeek(req.dayOfWeek ?? s.dayOfWeek);
+          setStartTime((req.startTime ?? s.startTime)?.slice(0, 5));
+          setEndTime((req.endTime ?? s.endTime)?.slice(0, 5));
+          setWeekMode(req.weekMode ?? 'ALL_REMAINING');
+          setWeeks(req.weeks ?? []);
         } else {
           setDayOfWeek(s.dayOfWeek);
           setStartTime(s.startTime?.slice(0, 5));
@@ -63,6 +81,17 @@ export default function UpdateSessionPage() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [sessionId, relatedRequestId]);
+
+  const suggestedRoomNames = useMemo(() => {
+    if (relatedRequest?.constraintKind === 'MODULE') return relatedRequest.allowedRoomNames ?? [];
+    if (relatedRequest?.specificRoomName) return [relatedRequest.specificRoomName];
+    return [];
+  }, [relatedRequest]);
+
+  const orderedRooms = useMemo(
+    () => orderRoomsBySuggestion(rooms, suggestedRoomNames, session?.roomName).ordered,
+    [rooms, suggestedRoomNames, session]
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,10 +114,10 @@ export default function UpdateSessionPage() {
         relatedRequestId: relatedRequestId ? Number(relatedRequestId) : null,
         reason: reason || null,
       });
-      const newRoomName = roomId ? rooms.find((r) => String(r.id) === String(roomId))?.name : session.roomName;
-      navigate('/timetabling-team/violations', {
-        state: { justUpdated: `${session.moduleCode} — ${session.moduleName} moved to ${dayOfWeek} ${startTime}, ${newRoomName}` },
-      });
+      const newRoomName = rooms.find((r) => String(r.id) === String(roomId))?.name ?? session.roomName;
+      const message = `${session.moduleCode} — ${session.moduleName} moved to ${dayOfWeek} ${startTime}, ${newRoomName}`;
+      const destination = relatedRequest?.type === 'CHANGE' ? '/timetabling-team/changes-in-queue' : '/timetabling-team/violations';
+      navigate(destination, { state: { justUpdated: message } });
     } catch (err) {
       setSaveError(err.message);
     } finally {
@@ -129,16 +158,20 @@ export default function UpdateSessionPage() {
 
               <label className="field">
                 <span className="field__label">Room</span>
-                <select className="field__input" value={roomId} onChange={(e) => setRoomId(e.target.value)}>
-                  <option value="">Keep current room ({session.roomName})</option>
-                  {rooms.map((r) => <option key={r.id} value={r.id}>{r.name} — {r.building}</option>)}
+                <select className="field__input" value={roomId} onChange={(e) => setRoomId(e.target.value)} required>
+                  {orderedRooms.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} — {r.building}{suggestedRoomNames.includes(r.name) ? ' ★' : ''}
+                    </option>
+                  ))}
                 </select>
+                {suggestedRoomNames.length > 0 && <span className="field__hint">★ = suggested by the request</span>}
               </label>
             </div>
 
-            {relatedRequestId ? (
+            {relatedRequest?.type === 'CONSTRAINT' ? (
               <p className="field__hint">
-                Resolving a violation updates the session's regular weekly pattern (every remaining
+                Resolving a constraint updates the session's regular weekly pattern (every remaining
                 week in Block {session.block}) — a single/multiple-week exception wouldn't clear the
                 violation, since violation checks only look at the regular pattern.
               </p>

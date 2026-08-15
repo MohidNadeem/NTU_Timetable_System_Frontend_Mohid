@@ -15,12 +15,19 @@ function summarise(r) {
 
 export default function TimetablingTeamRequestsPage() {
   const [requests, setRequests] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [kindFilter, setKindFilter] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('');
   const navigate = useNavigate();
 
   // fetching every constraint request (not filtered by requester) since this is the team-wide view
+  useEffect(() => {
+    api.get('/courses').then(setDepartments).catch(() => {});
+  }, []);
+
   useEffect(() => {
     api.get('/timetabling-team/requests/constraints')
       .then(setRequests)
@@ -28,9 +35,11 @@ export default function TimetablingTeamRequestsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = useMemo(
-    () => statusFilter ? requests.filter((r) => r.status === statusFilter) : requests,
-    [requests, statusFilter]
+  const filtered = useMemo(() => requests
+    .filter((r) => !statusFilter || r.status === statusFilter)
+    .filter((r) => !kindFilter || r.constraintKind === kindFilter)
+    .filter((r) => !departmentFilter || r.departmentCode === departmentFilter),
+    [requests, statusFilter, kindFilter, departmentFilter]
   );
 
   return (
@@ -43,6 +52,15 @@ export default function TimetablingTeamRequestsPage() {
           <select className="field__input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All statuses</option>
             {ALL_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
+          </select>
+          <select className="field__input" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}>
+            <option value="">All kinds</option>
+            <option value="MODULE">Module-based</option>
+            <option value="PERSONAL">Personal</option>
+          </select>
+          <select className="field__input" value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
+            <option value="">All departments</option>
+            {departments.map((d) => <option key={d.id} value={d.code}>{d.code}</option>)}
           </select>
         </div>
 

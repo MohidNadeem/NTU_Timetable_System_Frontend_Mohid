@@ -13,6 +13,13 @@ import TimetablingTeamRequestsPage from './pages/TimetablingTeamRequestsPage';
 import RequestDetailPage from './pages/RequestDetailPage';
 import ViolationsPage from './pages/ViolationsPage';
 import UpdateSessionPage from './pages/UpdateSessionPage';
+import SubmitChangeRequestPage from './pages/SubmitChangeRequestPage';
+import MyChangeRequestsPage from './pages/MyChangeRequestsPage';
+import TimetablingTeamChangeRequestsPage from './pages/TimetablingTeamChangeRequestsPage';
+import AcademicYearSettingsPage from './pages/AcademicYearSettingsPage';
+import ChangesInQueuePage from './pages/ChangesInQueuePage';
+import ViewEffectPage from './pages/ViewEffectPage';
+import AddSessionPage from './pages/AddSessionPage';
 
 // sending "/" to the right place based on auth state, so it's never a dead-end route
 function HomeRedirect() {
@@ -64,8 +71,23 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/lecturer/requests/changes"
+            element={
+              <ProtectedRoute allowedRole="LECTURER">
+                <SubmitChangeRequestPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lecturer/requests/changes/history"
+            element={
+              <ProtectedRoute allowedRole="LECTURER">
+                <MyChangeRequestsPage />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* same idea, mirrored for the timetabling-team side */}
           <Route
             path="/timetabling-team"
             element={
@@ -99,6 +121,22 @@ export default function App() {
             }
           />
           <Route
+            path="/timetabling-team/requests/:id/effect"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <ViewEffectPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timetabling-team/requests/:id/add-session"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <AddSessionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/timetabling-team/violations"
             element={
               <ProtectedRoute allowedRole="TIMETABLING_TEAM">
@@ -114,8 +152,31 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/timetabling-team/change-requests"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <TimetablingTeamChangeRequestsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timetabling-team/changes-in-queue"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <ChangesInQueuePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timetabling-team/academic-year"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <AcademicYearSettingsPage />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* catching unknown paths so they resolve via HomeRedirect instead of a blank page */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

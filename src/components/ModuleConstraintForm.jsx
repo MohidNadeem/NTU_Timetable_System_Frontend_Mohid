@@ -1,20 +1,25 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import WeekPicker from './WeekPicker';
 import {
   DAYS, DURATIONS, TIME_SLOTS, LEARNING_ACTIVITIES,
   ROOM_TYPES, ROOM_LAYOUTS, ROOM_FEATURES,
 } from '../api/constraintOptions';
 
-// weekMode is fixed to ALL_REMAINING for constraints
-// a constraint is a standing requirement for the module going forward, not a one-off week exception.
-// Single / Multiple week scope will be for change requests (Increment 2)
-const CONSTRAINT_WEEK_MODE = 'ALL_REMAINING';
+// Revised per 14 Aug 2026 prototype evaluation feedback:
+// - Primary Module is NOT scoped to "my modules"
+// - Day/Time are optional now
+// - full week-scope choice (3 options)
+// - multiple acceptable rooms
+// - one request can cover several lab/seminar groups
 
 const initialState = {
   departmentId: '',
   primaryModuleId: '',
   linkedModuleId: '',
   additionalLinkedModules: '',
+  weekMode: 'ALL_REMAINING',
+  weeks: [],
   dayOfWeek: '',
   startTime: '',
   durationHours: 2,
@@ -24,7 +29,7 @@ const initialState = {
   titleTechnical: '',
   roomType: '',
   preferredRoomLayout: 'NONE',
-  specificRoomId: '',
+  allowedRoomIds: [],
   feature: 'NONE',
   software: '',
   supportTeamStaff: '',
@@ -34,27 +39,28 @@ const initialState = {
 
 export default function ModuleConstraintForm({ onSubmitted }) {
   const [departments, setDepartments] = useState([]);
-  const [myModules, setMyModules] = useState([]);
   const [allModules, setAllModules] = useState([]);
   const [rooms, setRooms] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
 
   const [form, setForm] = useState(initialState);
+  const [groups, setGroups] = useState([]); // [{ groupLabel, preferredLecturerId }]
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     Promise.all([
       api.get('/courses'),
-      api.get('/lecturer/my-modules'),
       api.get('/modules'),
       api.get('/rooms'),
+      api.get('/teachers'),
     ])
-      .then(([deps, mine, all, r]) => {
+      .then(([deps, all, r, t]) => {
         setDepartments(deps);
-        setMyModules(mine);
         setAllModules(all);
         setRooms(r);
+        setTeachers(t);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoadingOptions(false));
@@ -62,21 +68,35 @@ export default function ModuleConstraintForm({ onSubmitted }) {
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const selectedPrimaryModule = myModules.find((m) => String(m.id) === String(form.primaryModuleId));
+  const selectedPrimaryModule = allModules.find((m) => String(m.id) === String(form.primaryModuleId));
   const block = selectedPrimaryModule?.block ?? null;
 
   const handlePrimaryModuleChange = (e) => {
-    setForm((f) => ({ ...f, primaryModuleId: e.target.value }));
+    setForm((f) => ({ ...f, primaryModuleId: e.target.value, weekMode: 'ALL_REMAINING', weeks: [] }));
   };
+
+  const toggleRoom = (roomId) => {
+    setForm((f) => ({
+      ...f,
+      allowedRoomIds: f.allowedRoomIds.includes(roomId)
+        ? f.allowedRoomIds.filter((id) => id !== roomId)
+        : [...f.allowedRoomIds, roomId],
+    }));
+  };
+
+  const addGroup = () => setGroups((g) => [...g, { groupLabel: `Group ${g.length + 1}`, preferredLecturerId: '' }]);
+  const removeGroup = (index) => setGroups((g) => g.filter((_, i) => i !== index));
+  const updateGroup = (index, field, value) =>
+    setGroups((g) => g.map((grp, i) => (i === index ? { ...grp, [field]: value } : grp)));
 
   const validate = () => {
     if (!form.departmentId) return 'Select a department';
     if (!form.primaryModuleId) return 'Select a primary module';
-    if (!form.dayOfWeek) return 'Select a day';
-    if (!form.startTime) return 'Select a time';
+    if (form.weekMode !== 'ALL_REMAINING' && form.weeks.length === 0) return 'Select at least one week';
     if (!form.learningActivity) return 'Select a learning activity';
     if (!form.roomType) return 'Select a room type';
     if (form.lectureCapture === '') return 'Select whether lecture capture is needed';
+    if (groups.some((g) => !g.groupLabel.trim())) return 'Every group needs a label';
     return '';
   };
 
@@ -96,10 +116,10 @@ export default function ModuleConstraintForm({ onSubmitted }) {
         linkedModuleId: form.linkedModuleId ? Number(form.linkedModuleId) : null,
         additionalLinkedModules: form.additionalLinkedModules || null,
         block,
-        weekMode: CONSTRAINT_WEEK_MODE,
-        weeks: [],
-        dayOfWeek: form.dayOfWeek,
-        startTime: form.startTime,
+        weekMode: form.weekMode,
+        weeks: form.weekMode === 'ALL_REMAINING' ? [] : form.weeks,
+        dayOfWeek: form.dayOfWeek || null,
+        startTime: form.startTime || null,
         durationHours: Number(form.durationHours),
         learningActivity: form.learningActivity,
         personalTutorDetail: form.personalTutorDetail || null,
@@ -107,14 +127,19 @@ export default function ModuleConstraintForm({ onSubmitted }) {
         titleTechnical: form.titleTechnical || null,
         roomType: form.roomType,
         preferredRoomLayout: form.preferredRoomLayout,
-        specificRoomId: form.specificRoomId ? Number(form.specificRoomId) : null,
+        allowedRoomIds: form.allowedRoomIds.map(Number),
         feature: form.feature,
         software: form.software || null,
         supportTeamStaff: form.supportTeamStaff || null,
         lectureCapture: form.lectureCapture === 'true',
         note: form.note || null,
+        groups: groups.map((g) => ({
+          groupLabel: g.groupLabel,
+          preferredLecturerId: g.preferredLecturerId ? Number(g.preferredLecturerId) : null,
+        })),
       });
       setForm(initialState);
+      setGroups([]);
       onSubmitted();
     } catch (err) {
       setError(err.message);
@@ -140,8 +165,9 @@ export default function ModuleConstraintForm({ onSubmitted }) {
           <span className="field__label">Primary Module</span>
           <select className="field__input" value={form.primaryModuleId} onChange={handlePrimaryModuleChange} required>
             <option value="">Select…</option>
-            {myModules.map((m) => <option key={m.id} value={m.id}>{m.code} — {m.name}</option>)}
+            {allModules.map((m) => <option key={m.id} value={m.id}>{m.code} — {m.name}</option>)}
           </select>
+          <span className="field__hint">Any module - not limited to ones you currently teach.</span>
         </label>
 
         <label className="field">
@@ -158,26 +184,27 @@ export default function ModuleConstraintForm({ onSubmitted }) {
         </label>
       </div>
 
-      {block && (
-        <p className="field__hint">
-          This applies to all remaining weeks in Block {block}.
-        </p>
-      )}
-
+      <WeekPicker
+        block={block}
+        weekMode={form.weekMode}
+        weeks={form.weeks}
+        onWeekModeChange={(v) => setForm((f) => ({ ...f, weekMode: v }))}
+        onWeeksChange={(v) => setForm((f) => ({ ...f, weeks: v }))}
+      />
 
       <div className="form-grid">
         <label className="field">
-          <span className="field__label">Day</span>
-          <select className="field__input" value={form.dayOfWeek} onChange={set('dayOfWeek')} required>
-            <option value="">Select…</option>
+          <span className="field__label">Day (optional)</span>
+          <select className="field__input" value={form.dayOfWeek} onChange={set('dayOfWeek')}>
+            <option value="">No preference</option>
             {DAYS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
           </select>
         </label>
 
         <label className="field">
-          <span className="field__label">Time</span>
-          <select className="field__input" value={form.startTime} onChange={set('startTime')} required>
-            <option value="">Select…</option>
+          <span className="field__label">Time (optional)</span>
+          <select className="field__input" value={form.startTime} onChange={set('startTime')}>
+            <option value="">No preference</option>
             {TIME_SLOTS.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </label>
@@ -232,20 +259,60 @@ export default function ModuleConstraintForm({ onSubmitted }) {
         </label>
 
         <label className="field">
-          <span className="field__label">Specific Room</span>
-          <select className="field__input" value={form.specificRoomId} onChange={set('specificRoomId')}>
-            <option value="">None / no preference</option>
-            {rooms.map((r) => <option key={r.id} value={r.id}>{r.name} — {r.building}</option>)}
-          </select>
-        </label>
-
-        <label className="field">
           <span className="field__label">Feature</span>
           <select className="field__input" value={form.feature} onChange={set('feature')}>
             {ROOM_FEATURES.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
         </label>
       </div>
+
+      <fieldset className="field">
+        <legend className="field__label">Acceptable rooms (optional - select any that would work)</legend>
+        <div className="week-picker__grid">
+          {rooms.map((r) => (
+            <label key={r.id} className="checkbox">
+              <input
+                type="checkbox"
+                checked={form.allowedRoomIds.includes(String(r.id))}
+                onChange={() => toggleRoom(String(r.id))}
+              />
+              {r.name} — {r.building}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="field">
+        <legend className="field__label">
+          Groups (optional — if this covers several lab/seminar groups, e.g. each with a different teacher)
+        </legend>
+        {groups.map((g, i) => (
+          <div key={i} className="form-grid" style={{ marginBottom: 10, alignItems: 'end' }}>
+            <label className="field">
+              <span className="field__label">Group label</span>
+              <input
+                className="field__input"
+                type="text"
+                value={g.groupLabel}
+                onChange={(e) => updateGroup(i, 'groupLabel', e.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">Preferred teacher (optional)</span>
+              <select
+                className="field__input"
+                value={g.preferredLecturerId}
+                onChange={(e) => updateGroup(i, 'preferredLecturerId', e.target.value)}
+              >
+                <option value="">Not decided yet</option>
+                {teachers.map((t) => <option key={t.id} value={t.id}>{t.fullName}</option>)}
+              </select>
+            </label>
+            <button type="button" className="btn btn--ghost" onClick={() => removeGroup(i)}>Remove</button>
+          </div>
+        ))}
+        <button type="button" className="btn btn--ghost" onClick={addGroup}>+ Add group</button>
+      </fieldset>
 
       <div className="form-grid">
         <label className="field">
@@ -254,8 +321,14 @@ export default function ModuleConstraintForm({ onSubmitted }) {
         </label>
 
         <label className="field">
-          <span className="field__label">Support Team/Staff</span>
-          <input className="field__input" type="text" value={form.supportTeamStaff} onChange={set('supportTeamStaff')} />
+          <span className="field__label">Who is delivering this session, if not you? (optional)</span>
+          <input
+            className="field__input"
+            type="text"
+            value={form.supportTeamStaff}
+            onChange={set('supportTeamStaff')}
+            placeholder="e.g. another staff member is teaching this"
+          />
         </label>
 
         <fieldset className="field">

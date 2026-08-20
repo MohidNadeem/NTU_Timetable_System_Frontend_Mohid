@@ -88,20 +88,24 @@ export default function TimetableCalendarGrid({ sessions }) {
             {byDay[day].map(({ session: s, column, totalColumns }) => (
               <div
                 key={s.id}
-                className={`calendar__event${s.isOverridden ? ' calendar__event--overridden' : ''}`}
+                className={`calendar__event${s.isOverridden ? ' calendar__event--overridden' : ''}${s.isCancelled ? ' calendar__event--cancelled' : ''}`}
                 style={{
                   top: topPx(s.startTime),
                   height: heightPx(s.startTime, s.endTime),
                   left: `${(column / totalColumns) * 100}%`,
                   width: `${100 / totalColumns}%`,
                 }}
-                title={`${s.moduleCode} — ${s.moduleName}\n${fmtTime(s.startTime)}–${fmtTime(s.endTime)}\n${s.roomName}\n${s.lecturerName}`}
+                title={`${s.moduleCode} — ${s.moduleName}\n${fmtTime(s.startTime)}–${fmtTime(s.endTime)}\n${s.roomName}\n${s.lecturerName}${s.isCancelled ? '\nCANCELLED' : ''}`}
               >
                 <span className="calendar__event-time">
                   {fmtTime(s.startTime)}–{fmtTime(s.endTime)}
-                  {s.isOverridden && <span className="calendar__event-badge">Moved</span>}
+                  {s.isCancelled && <span className="calendar__event-badge calendar__event-badge--cancelled">Cancelled</span>}
+                  {!s.isCancelled && s.isOverridden && <span className="calendar__event-badge">Moved</span>}
                 </span>
-                <span className="calendar__event-title">{s.moduleCode} — {s.moduleName}</span>
+                <span className="calendar__event-title">
+                  {s.sessionLabel ? s.sessionLabel : `${s.moduleCode} — ${s.moduleName}`}
+                </span>
+                {s.sessionLabel && <span className="calendar__event-meta">{s.moduleCode} — {s.moduleName}</span>}
                 <span className="calendar__event-meta">{SESSION_TYPE_LABELS[s.sessionType] ?? s.sessionType} · {s.roomName}</span>
                 {heightPx(s.startTime, s.endTime) > ROW_HEIGHT * 0.9 && (
                   <span className="calendar__event-meta">{s.lecturerName}</span>

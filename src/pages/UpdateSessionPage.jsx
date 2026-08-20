@@ -19,6 +19,7 @@ export default function UpdateSessionPage() {
 
   const [session, setSession] = useState(null);
   const [rooms, setRooms] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [relatedRequest, setRelatedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,6 +29,7 @@ export default function UpdateSessionPage() {
   const [endTime, setEndTime] = useState('');
   const [durationHours, setDurationHours] = useState(2);
   const [roomId, setRoomId] = useState('');
+  const [lecturerId, setLecturerId] = useState('');
   const [weekMode, setWeekMode] = useState('ALL_REMAINING');
   const [weeks, setWeeks] = useState([]);
   const [reason, setReason] = useState('');
@@ -35,14 +37,19 @@ export default function UpdateSessionPage() {
   const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
-    const calls = [api.get(`/timetabling-team/sessions/${sessionId}`), api.get('/rooms')];
+    const calls = [api.get(`/timetabling-team/sessions/${sessionId}`), api.get('/rooms'), api.get('/teachers')];
     if (relatedRequestId) calls.push(api.get(`/timetabling-team/requests/${relatedRequestId}`));
 
     Promise.all(calls)
-      .then(([s, r, req]) => {
+      .then(([s, r, t, req]) => {
         setSession(s);
         setRooms(r);
+        setTeachers(t);
         setRelatedRequest(req ?? null);
+
+        if (req?.changeCategory === 'STAFF_CHANGE' && req.preferredNewLecturerId) {
+          setLecturerId(String(req.preferredNewLecturerId));
+        }
 
         // working out which room(s) to suggest first in the dropdown
         const suggestedNames = req?.constraintKind === 'MODULE' ? (req.allowedRoomNames ?? [])
@@ -120,13 +127,15 @@ export default function UpdateSessionPage() {
         startTime,
         endTime,
         roomId: roomId ? Number(roomId) : null,
+        lecturerId: lecturerId ? Number(lecturerId) : null,
         scope: weekMode,
         weeks: weekMode === 'ALL_REMAINING' ? [] : weeks,
         relatedRequestId: relatedRequestId ? Number(relatedRequestId) : null,
         reason: reason || null,
       });
       const newRoomName = rooms.find((r) => String(r.id) === String(roomId))?.name ?? session.roomName;
-      const message = `${session.moduleCode} — ${session.moduleName} moved to ${dayOfWeek} ${startTime}, ${newRoomName}`;
+      const newTeacherName = lecturerId ? teachers.find((t) => String(t.id) === String(lecturerId))?.fullName : session.lecturerName;
+      const message = `${session.moduleCode} — ${session.moduleName} moved to ${dayOfWeek} ${startTime}, ${newRoomName}${lecturerId ? `, taught by ${newTeacherName}` : ''}`;
       // going straight back to wherever this update resolves - Violations for constraints,
       // Changes in Queue for change requests - with a confirmation naming exactly what changed
       const destination = relatedRequest?.type === 'CHANGE' ? '/timetabling-team/changes-in-queue' : '/timetabling-team/violations';
@@ -181,13 +190,23 @@ export default function UpdateSessionPage() {
                 </select>
                 {suggestedRoomNames.length > 0 && <span className="field__hint">★ = suggested by the request</span>}
               </label>
+
+              <label className="field">
+                <span className="field__label">
+                  Teacher{relatedRequest?.changeCategory === 'STAFF_CHANGE' && <span className="field__hint"> (requested change)</span>}
+                </span>
+                <select className="field__input" value={lecturerId} onChange={(e) => setLecturerId(e.target.value)}>
+                  <option value="">Keep current ({session.lecturerName})</option>
+                  {teachers.map((t) => <option key={t.id} value={t.id}>{t.fullName}</option>)}
+                </select>
+              </label>
             </div>
 
-            {relatedRequest?.type === 'CONSTRAINT' ? (
+            {relatedRequest?.type === 'CONSTRAINT' || relatedRequest?.changeCategory === 'STAFF_CHANGE' ? (
               <p className="field__hint">
-                Resolving a constraint updates the session's regular weekly pattern (every remaining
-                week in Block {session.block}) — a single/multiple-week exception wouldn't clear the
-                violation, since violation checks only look at the regular pattern.
+                {relatedRequest?.changeCategory === 'STAFF_CHANGE'
+                  ? 'Reassigning the teacher applies to the session\'s regular weekly pattern - a per-week teacher swap isn\'t supported.'
+                  : 'Resolving a constraint updates the session\'s regular weekly pattern (every remaining week in Block ' + session.block + ') — a single/multiple-week exception wouldn\'t clear the violation, since violation checks only look at the regular pattern.'}
               </p>
             ) : (
               <WeekPicker

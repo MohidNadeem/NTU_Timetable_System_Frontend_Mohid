@@ -424,6 +424,17 @@ legend.field__label {
   color: var(--ink);
 }
 
+.btn--danger {
+  background: white;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn--danger:hover {
+  background: var(--danger);
+  color: white;
+}
+
 .btn--full {
   width: 100%;
 }
@@ -903,6 +914,25 @@ legend.field__label {
 .calendar__event--overridden {
   background: #fff0f6;
   box-shadow: 0 0 0 1px var(--ntu-pink-dark) inset;
+}
+
+.calendar__event--cancelled {
+  background: #f2f2f2;
+  border-color: var(--ink-soft);
+  border-left-color: var(--ink-soft);
+  opacity: 0.7;
+}
+
+.calendar__event--cancelled .calendar__event-title,
+.calendar__event--cancelled .calendar__event-meta,
+.calendar__event--cancelled .calendar__event-time {
+  text-decoration: line-through;
+  color: var(--ink-soft);
+}
+
+.calendar__event-badge--cancelled {
+  background: var(--danger);
+  text-decoration: none;
 }
 
 .calendar__event-time {

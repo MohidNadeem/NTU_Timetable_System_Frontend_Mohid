@@ -4,7 +4,7 @@ import Layout from '../components/Layout';
 import { api } from '../api/client';
 import {
   STATUS_LABELS, ALL_STATUSES, STATUSES_REQUIRING_REASON, ROOM_TYPES, ROOM_LAYOUTS, ROOM_FEATURES,
-  ACADEMIC_PERIODS, PREFERRED_ROOM_ANSWERS, changeCategoryLabel,
+  ACADEMIC_PERIODS, changeCategoryLabel,
 } from '../api/constraintOptions';
 
 function findLabel(options, value) {
@@ -96,21 +96,37 @@ export default function RequestDetailPage() {
               <>
                 <div><dt>Module</dt><dd>{r.primaryModuleCode} — {r.primaryModuleName}</dd></div>
                 <div><dt>Year group</dt><dd>{r.academicYearLabel} {findLabel(ACADEMIC_PERIODS, r.academicPeriod)}</dd></div>
-                <div><dt>Room booked for you?</dt><dd>{r.roomBookingNeeded ? 'Yes' : 'No'}</dd></div>
-                <div><dt>Current session</dt><dd>{r.currentSessionSummary}</dd></div>
-                <div><dt>Scope</dt><dd>
-                  {r.weekMode === 'ALL_REMAINING' ? 'All upcoming sessions'
-                    : r.weekMode === 'SINGLE' ? 'One session'
-                    : `Multiple sessions — ${(r.weeks || []).sort((a, b) => a - b).map((w) => `Week ${w}`).join(', ')}`}
-                </dd></div>
-                {r.dayOfWeek && <div><dt>Preferred day</dt><dd>{r.dayOfWeek}</dd></div>}
-                {r.startTime && <div><dt>Preferred time</dt><dd>{r.startTime.slice(0, 5)}{r.endTime ? `–${r.endTime.slice(0, 5)}` : ''}</dd></div>}
-                <div><dt>Delivery type</dt><dd>{r.learningActivity}</dd></div>
-                <div><dt>Preferred room?</dt><dd>{findLabel(PREFERRED_ROOM_ANSWERS, r.preferredRoomAnswer)}</dd></div>
-                {r.specificRoomName && <div><dt>Specific room</dt><dd>{r.specificRoomName}</dd></div>}
                 <div><dt>What needs changing</dt><dd>{changeCategoryLabel(r.changeCategory)}</dd></div>
-                <div><dt>Rationale</dt><dd>{r.rationale}</dd></div>
-                <div><dt>Benefit to students</dt><dd>{r.benefitToStudents}</dd></div>
+
+                {r.currentSessionSummary && <div><dt>Current session</dt><dd>{r.currentSessionSummary}</dd></div>}
+                {r.changeCategory === 'CLASHES' && r.clashingSessionSummary && (
+                  <div><dt>Clashes with</dt><dd>{r.clashingSessionSummary}</dd></div>
+                )}
+                {r.changeCategory === 'STAFF_CHANGE' && (
+                  <div><dt>Preferred new teacher</dt><dd>{r.preferredNewLecturerName ?? '—'}</dd></div>
+                )}
+                {r.changeCategory === 'MERGE_SESSIONS_GROUPS' && r.mergeSessions?.length > 0 && (
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <dt>Sessions to merge</dt>
+                    <dd>{r.mergeSessions.map((m) => <div key={m.id}>{m.summary}</div>)}</dd>
+                  </div>
+                )}
+
+                {(r.changeCategory !== 'STAFF_CHANGE' && r.changeCategory !== 'CLASHES') && (
+                  <div><dt>Scope</dt><dd>
+                    {r.weekMode === 'ALL_REMAINING' ? 'All upcoming sessions'
+                      : r.weekMode === 'SINGLE' ? 'One session'
+                      : `Multiple sessions — ${(r.weeks || []).sort((a, b) => a - b).map((w) => `Week ${w}`).join(', ')}`}
+                  </dd></div>
+                )}
+                {r.dayOfWeek && <div><dt>{r.changeCategory === 'ADDITIONAL_SESSION' ? 'Day' : 'Preferred day'}</dt><dd>{r.dayOfWeek}</dd></div>}
+                {r.startTime && <div><dt>{r.changeCategory === 'ADDITIONAL_SESSION' ? 'Time' : 'Preferred time'}</dt><dd>{r.startTime.slice(0, 5)}{r.endTime ? `–${r.endTime.slice(0, 5)}` : ''}</dd></div>}
+                {r.changeCategory === 'ADDITIONAL_SESSION' && <div><dt>Delivery type</dt><dd>{r.learningActivity}</dd></div>}
+                {r.roomType && <div><dt>Room type</dt><dd>{findLabel(ROOM_TYPES, r.roomType)}</dd></div>}
+                {r.allowedRoomNames?.length > 0 && <div><dt>Acceptable rooms</dt><dd>{r.allowedRoomNames.join(', ')}</dd></div>}
+
+                <div style={{ gridColumn: '1 / -1' }}><dt>What needs to happen</dt><dd>{r.rationale}</dd></div>
+                <div style={{ gridColumn: '1 / -1' }}><dt>Benefit to students</dt><dd>{r.benefitToStudents}</dd></div>
               </>
             )}
 

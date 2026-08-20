@@ -5,8 +5,22 @@ import { api } from '../api/client';
 import { STATUS_LABELS, ALL_STATUSES, CHANGE_CATEGORIES, changeCategoryLabel } from '../api/constraintOptions';
 
 function summarise(r) {
-  const day = r.dayOfWeek ? r.dayOfWeek.charAt(0) + r.dayOfWeek.slice(1).toLowerCase() : 'no preference';
-  return `${r.primaryModuleCode ?? ''} — currently ${r.currentSessionSummary ?? '—'} → wants ${day}`;
+  const day = r.dayOfWeek ? r.dayOfWeek.charAt(0) + r.dayOfWeek.slice(1).toLowerCase() : null;
+
+  switch (r.changeCategory) {
+    case 'CLASHES':
+      return `${r.primaryModuleCode ?? ''} — ${r.currentSessionSummary ?? '—'} clashes with ${r.clashingSessionSummary ?? '—'}`;
+    case 'STAFF_CHANGE':
+      return `${r.primaryModuleCode ?? ''} — ${r.currentSessionSummary ?? '—'} → ${r.preferredNewLecturerName ?? 'new teacher'}`;
+    case 'ADDITIONAL_SESSION':
+      return `${r.primaryModuleCode ?? ''} — new session${day ? `, ${day}` : ''}`;
+    case 'MERGE_SESSIONS_GROUPS':
+      return `${r.primaryModuleCode ?? ''} — merging ${r.mergeSessions?.length ?? 0} sessions`;
+    case 'SESSION_REMOVAL':
+      return `${r.primaryModuleCode ?? ''} — remove ${r.currentSessionSummary ?? '—'}`;
+    default:
+      return `${r.primaryModuleCode ?? ''} — currently ${r.currentSessionSummary ?? '—'}${day ? ` → wants ${day}` : ''}`;
+  }
 }
 
 export default function MyChangeRequestsPage() {

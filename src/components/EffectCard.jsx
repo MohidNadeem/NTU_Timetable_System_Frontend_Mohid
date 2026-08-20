@@ -15,6 +15,7 @@ export default function EffectCard({ effect }) {
 
   const isChange = effect.requestType === 'CHANGE';
   const isPersonal = effect.constraintKind === 'PERSONAL';
+  const category = effect.changeCategory;
   const title = isPersonal
     ? `Personal constraint — ${effect.requesterName}`
     : `${effect.primaryModuleCode} — ${effect.primaryModuleName}`;
@@ -22,7 +23,7 @@ export default function EffectCard({ effect }) {
   const subtitle = [
     effect.requesterName,
     effect.departmentCode,
-    isChange && changeCategoryLabel(effect.changeCategory),
+    isChange && changeCategoryLabel(category),
     effect.block && `Block ${effect.block}`,
   ].filter(Boolean).join(' · ');
 
@@ -37,6 +38,18 @@ export default function EffectCard({ effect }) {
     if (item.sessionType) params.set('sessionType', item.sessionType);
     const qs = params.toString();
     navigate(`/timetabling-team/requests/${effect.requestId}/add-session${qs ? `?${qs}` : ''}`);
+  };
+
+  const goCancelSession = (item) => {
+    navigate(`/timetabling-team/sessions/${item.sessionId}/cancel?requestId=${effect.requestId}`);
+  };
+
+  const secondColLabel = (item) => {
+    if (item.actionType === 'ADD_SESSION') return 'Proposed new session';
+    if (category === 'CLASHES') return 'Currently clashes with';
+    if (category === 'STAFF_CHANGE') return 'Requested';
+    if (isPersonal) return 'Unavailable window';
+    return 'Requested';
   };
 
   return (
@@ -82,19 +95,30 @@ export default function EffectCard({ effect }) {
             </div>
           )}
 
-          <div className="violation-compare__col">
-            <span className="violation-compare__label">
-              {item.actionType === 'ADD_SESSION' ? 'Proposed new session' : isPersonal ? 'Unavailable window' : 'Requested'}
-            </span>
-            <span>
-              {fmtDay(item.requestedDayOfWeek)} {fmtTime(item.requestedStartTime)}
-              {item.requestedEndTime ? `–${fmtTime(item.requestedEndTime)}` : ''}
-            </span>
-            <span className="card__body">{item.requestedRoomName ?? 'No specific room'}</span>
-            {item.unmatchedWeeks?.length > 0 && (
-              <span className="card__body">Still pending for: {item.unmatchedWeeks.map((w) => `Week ${w}`).join(', ')}</span>
-            )}
-          </div>
+          {item.actionType === 'CANCEL_SESSION' ? (
+            <div className="violation-compare__col">
+              <span className="violation-compare__label">
+                {category === 'MERGE_SESSIONS_GROUPS' ? 'Needs cancelling (merge step 1)' : 'Needs cancelling'}
+              </span>
+              {item.unmatchedWeeks?.length > 0 ? (
+                <span className="card__body">Still scheduled for: {item.unmatchedWeeks.map((w) => `Week ${w}`).join(', ')}</span>
+              ) : (
+                <span className="card__body">This session should be cancelled.</span>
+              )}
+            </div>
+          ) : (
+            <div className="violation-compare__col">
+              <span className="violation-compare__label">{secondColLabel(item)}</span>
+              <span>
+                {fmtDay(item.requestedDayOfWeek)} {fmtTime(item.requestedStartTime)}
+                {item.requestedEndTime ? `–${fmtTime(item.requestedEndTime)}` : ''}
+              </span>
+              <span className="card__body">{item.requestedRoomName ?? 'No specific room'}</span>
+              {item.unmatchedWeeks?.length > 0 && (
+                <span className="card__body">Still pending for: {item.unmatchedWeeks.map((w) => `Week ${w}`).join(', ')}</span>
+              )}
+            </div>
+          )}
 
           {item.actionType === 'UPDATE_SESSION' && item.sessionId && (
             <button className="btn btn--primary" onClick={() => goUpdate(item)} style={{ alignSelf: 'center' }}>
@@ -104,6 +128,11 @@ export default function EffectCard({ effect }) {
           {item.actionType === 'ADD_SESSION' && (
             <button className="btn btn--primary" onClick={() => goAddSession(item)} style={{ alignSelf: 'center' }}>
               Add Session
+            </button>
+          )}
+          {item.actionType === 'CANCEL_SESSION' && item.sessionId && (
+            <button className="btn btn--danger" onClick={() => goCancelSession(item)} style={{ alignSelf: 'center' }}>
+              Cancel Session
             </button>
           )}
           {item.actionType === 'MANUAL_REVIEW' && (

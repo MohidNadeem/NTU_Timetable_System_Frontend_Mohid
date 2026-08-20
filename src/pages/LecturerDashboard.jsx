@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { api } from '../api/client';
-import { STATUS_LABELS } from '../api/constraintOptions';
+import { STATUS_LABELS, changeCategoryLabel } from '../api/constraintOptions';
 
 export default function LecturerDashboard() {
   const [dashboard, setDashboard] = useState(null);
@@ -71,6 +71,30 @@ export default function LecturerDashboard() {
             {dashboard.totalRequests} request{dashboard.totalRequests === 1 ? '' : 's'} submitted in total.
             {' '}
             <Link to="/lecturer/requests/history">View full list →</Link>
+          </p>
+        </div>
+
+        <div className="card">
+          <div className="card__header-row">
+            <h2 className="card__title">My change requests, by category</h2>
+            <Link className="btn btn--primary" to="/lecturer/requests/changes">Submit a change</Link>
+          </div>
+
+          {Object.keys(dashboard.changeCategoryCounts).length === 0 ? (
+            <p className="card__body">No change requests submitted yet.</p>
+          ) : (
+            <div className="stat-grid">
+              {Object.entries(dashboard.changeCategoryCounts).map(([category, count]) => (
+                <div key={category} className="stat-card">
+                  <span className="stat-card__count">{count}</span>
+                  <span className="stat-card__label">{changeCategoryLabel(category)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="card__body" style={{ marginTop: 14 }}>
+            <Link to="/lecturer/requests/changes/history">View full list →</Link>
           </p>
         </div>
       </div>

@@ -104,7 +104,7 @@ export const ROOM_FEATURES = [
   { value: 'STAGE', label: 'Stage' },
 ];
 
-// status labels shown across the dashboard + request tables
+// status labels shown across the dashboard + request tables - keeps display text in one place
 export const STATUS_LABELS = {
   AWAITING_DECISION: 'Awaiting Decision',
   DRAFT_COMPLETE: 'Draft Complete',
@@ -126,6 +126,23 @@ export const SESSION_TYPE_LABELS = {
   TUTORIAL: 'Tutorial',
   SURGERY: 'Surgery',
   PROJECT: 'Project',
+  WORKSHOP: 'Workshop',
+  ASSESSMENT: 'Assessment',
+  DROP_IN: 'Drop-in',
+  OTHER: 'Other',
+};
+
+// maps a change request's requested Delivery Type
+export const LEARNING_ACTIVITY_TO_SESSION_TYPE = {
+  'Lecture - Subject lecture': 'LECTURE',
+  'Seminar': 'SEMINAR',
+  'Lab / Practical': 'LAB',
+  'Tutorial': 'TUTORIAL',
+  'Surgery': 'SURGERY',
+  'Workshop': 'WORKSHOP',
+  'Assessment': 'ASSESSMENT',
+  'Drop-in': 'DROP_IN',
+  'Other': 'OTHER',
 };
 
 // ---- Change Request options (Increment 2)

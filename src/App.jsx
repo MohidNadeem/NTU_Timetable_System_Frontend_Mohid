@@ -20,6 +20,7 @@ import SessionManagementPage from './pages/SessionManagementPage';
 import ChangesInQueuePage from './pages/ChangesInQueuePage';
 import ViewEffectPage from './pages/ViewEffectPage';
 import AddSessionPage from './pages/AddSessionPage';
+import CancelSessionPage from './pages/CancelSessionPage';
 
 // sending "/" to the right place based on auth state, so it's never a dead-end route
 function HomeRedirect() {
@@ -149,6 +150,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRole="TIMETABLING_TEAM">
                 <UpdateSessionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timetabling-team/sessions/:sessionId/cancel"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <CancelSessionPage />
               </ProtectedRoute>
             }
           />

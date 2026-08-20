@@ -16,7 +16,7 @@ import UpdateSessionPage from './pages/UpdateSessionPage';
 import SubmitChangeRequestPage from './pages/SubmitChangeRequestPage';
 import MyChangeRequestsPage from './pages/MyChangeRequestsPage';
 import TimetablingTeamChangeRequestsPage from './pages/TimetablingTeamChangeRequestsPage';
-import AcademicYearSettingsPage from './pages/AcademicYearSettingsPage';
+import SessionManagementPage from './pages/SessionManagementPage';
 import ChangesInQueuePage from './pages/ChangesInQueuePage';
 import ViewEffectPage from './pages/ViewEffectPage';
 import AddSessionPage from './pages/AddSessionPage';
@@ -153,6 +153,14 @@ export default function App() {
             }
           />
           <Route
+            path="/timetabling-team/sessions/add"
+            element={
+              <ProtectedRoute allowedRole="TIMETABLING_TEAM">
+                <AddSessionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/timetabling-team/change-requests"
             element={
               <ProtectedRoute allowedRole="TIMETABLING_TEAM">
@@ -169,10 +177,10 @@ export default function App() {
             }
           />
           <Route
-            path="/timetabling-team/academic-year"
+            path="/timetabling-team/session-management"
             element={
               <ProtectedRoute allowedRole="TIMETABLING_TEAM">
-                <AcademicYearSettingsPage />
+                <SessionManagementPage />
               </ProtectedRoute>
             }
           />

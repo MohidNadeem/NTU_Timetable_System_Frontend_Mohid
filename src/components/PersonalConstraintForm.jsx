@@ -37,6 +37,16 @@ export default function PersonalConstraintForm({ onSubmitted }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (fromDate && toDate && toDate < fromDate) {
+      setError('To date must be on or after From date');
+      return;
+    }
+    if (fromTime && toTime && toTime <= fromTime) {
+      setError('To time must be after From time');
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post('/lecturer/requests/constraints/personal', {
@@ -129,15 +139,18 @@ export default function PersonalConstraintForm({ onSubmitted }) {
         ))}
       </fieldset>
 
-      <div className="form-grid">
+      <div className="field-row-2">
         <label className="field">
           <span className="field__label">From date (optional)</span>
           <input className="field__input" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         </label>
         <label className="field">
           <span className="field__label">To date (optional)</span>
-          <input className="field__input" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+          <input className="field__input" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} min={fromDate || undefined} />
         </label>
+      </div>
+
+      <div className="field-row-2">
         <label className="field">
           <span className="field__label">From time (optional)</span>
           <input className="field__input" type="time" value={fromTime} onChange={(e) => setFromTime(e.target.value)} />

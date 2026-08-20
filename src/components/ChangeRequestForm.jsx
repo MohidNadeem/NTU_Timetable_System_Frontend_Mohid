@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import WeekPicker from './WeekPicker';
+import DurationTimeFields from './DurationTimeFields';
 import {
-  DAYS, LEARNING_ACTIVITIES, ACADEMIC_PERIODS, PREFERRED_ROOM_ANSWERS, CHANGE_CATEGORIES,
+  DAYS, LEARNING_ACTIVITIES, ACADEMIC_PERIODS, PREFERRED_ROOM_ANSWERS, CHANGE_CATEGORIES, hoursBetween,
 } from '../api/constraintOptions';
 
 const initialState = {
@@ -16,6 +17,7 @@ const initialState = {
   dayOfWeek: '',
   startTime: '',
   endTime: '',
+  durationHours: 2,
   deliveryType: '',
   preferredRoomAnswer: '',
   specificRoomId: '',
@@ -85,6 +87,9 @@ export default function ChangeRequestForm({ onSubmitted }) {
     if (!form.deliveryType) return 'Select a delivery type';
     if (!form.preferredRoomAnswer) return 'Answer whether there is a preferred room';
     if (!form.changeCategory) return 'Select what needs changing';
+    if (form.startTime && form.endTime && hoursBetween(form.startTime, form.endTime) === null) {
+      return 'End time must be after start time';
+    }
     if (!form.rationale.trim()) return 'Describe the rationale for this request';
     if (!form.benefitToStudents.trim()) return 'Describe the benefit to students';
     return '';
@@ -221,15 +226,14 @@ export default function ChangeRequestForm({ onSubmitted }) {
           </select>
         </label>
 
-        <label className="field">
-          <span className="field__label">Preferred start time</span>
-          <input className="field__input" type="time" value={form.startTime} onChange={set('startTime')} />
-        </label>
-
-        <label className="field">
-          <span className="field__label">Preferred end time</span>
-          <input className="field__input" type="time" value={form.endTime} onChange={set('endTime')} />
-        </label>
+        <DurationTimeFields
+          durationHours={form.durationHours}
+          startTime={form.startTime}
+          endTime={form.endTime}
+          onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+          durationRequired={false}
+          startTimeRequired={false}
+        />
       </div>
 
       <div className="form-grid">

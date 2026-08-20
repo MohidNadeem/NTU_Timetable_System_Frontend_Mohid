@@ -2,16 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import WeekPicker from '../components/WeekPicker';
+import DurationTimeFields from '../components/DurationTimeFields';
 import { api } from '../api/client';
-import { DAYS, orderRoomsBySuggestion } from '../api/constraintOptions';
+import { DAYS, orderRoomsBySuggestion, addHours, hoursBetween } from '../api/constraintOptions';
 
-function addHours(timeStr, hours) {
-  if (!timeStr) return '';
-  const [h, m] = timeStr.split(':').map(Number);
-  const total = h * 60 + m + hours * 60;
-  const hh = String(Math.floor((total / 60) % 24)).padStart(2, '0');
-  const mm = String(total % 60).padStart(2, '0');
-  return `${hh}:${mm}`;
+// Estimate the duration of a session based on its start and end times 
+function estimateDuration(start, end) {
+  return hoursBetween(start, end) ?? 2;
 }
 
 export default function UpdateSessionPage() {
@@ -29,6 +26,7 @@ export default function UpdateSessionPage() {
   const [dayOfWeek, setDayOfWeek] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [durationHours, setDurationHours] = useState(2);
   const [roomId, setRoomId] = useState('');
   const [weekMode, setWeekMode] = useState('ALL_REMAINING');
   const [weeks, setWeeks] = useState([]);
@@ -54,29 +52,38 @@ export default function UpdateSessionPage() {
         const fallbackRoomId = r.find((room) => room.name === s.roomName)?.id ?? '';
         setRoomId(defaultId ?? fallbackRoomId);
 
+        let day, start, end;
         if (req && req.type === 'CONSTRAINT' && req.constraintKind === 'MODULE') {
-          setDayOfWeek(req.dayOfWeek ?? s.dayOfWeek);
-          setStartTime((req.startTime ?? s.startTime)?.slice(0, 5));
-          setEndTime(addHours((req.startTime ?? s.startTime)?.slice(0, 5), req.durationHours ?? 2));
+          // module constraint
+          day = req.dayOfWeek ?? s.dayOfWeek;
+          start = (req.startTime ?? s.startTime)?.slice(0, 5);
+          end = addHours(start, req.durationHours ?? 2);
           setWeekMode('ALL_REMAINING');
           setWeeks([]);
         } else if (req && req.type === 'CONSTRAINT' && req.constraintKind === 'PERSONAL') {
-          setDayOfWeek(s.dayOfWeek);
-          setStartTime(s.startTime?.slice(0, 5));
-          setEndTime(s.endTime?.slice(0, 5));
+          // personal constraint
+          day = s.dayOfWeek;
+          start = s.startTime?.slice(0, 5);
+          end = s.endTime?.slice(0, 5);
           setWeekMode('ALL_REMAINING');
           setWeeks([]);
         } else if (req && req.type === 'CHANGE') {
-          setDayOfWeek(req.dayOfWeek ?? s.dayOfWeek);
-          setStartTime((req.startTime ?? s.startTime)?.slice(0, 5));
-          setEndTime((req.endTime ?? s.endTime)?.slice(0, 5));
+          // change request
+          day = req.dayOfWeek ?? s.dayOfWeek;
+          start = (req.startTime ?? s.startTime)?.slice(0, 5);
+          end = (req.endTime ?? s.endTime)?.slice(0, 5);
           setWeekMode(req.weekMode ?? 'ALL_REMAINING');
           setWeeks(req.weeks ?? []);
         } else {
-          setDayOfWeek(s.dayOfWeek);
-          setStartTime(s.startTime?.slice(0, 5));
-          setEndTime(s.endTime?.slice(0, 5));
+          day = s.dayOfWeek;
+          start = s.startTime?.slice(0, 5);
+          end = s.endTime?.slice(0, 5);
         }
+
+        setDayOfWeek(day);
+        setStartTime(start);
+        setEndTime(end);
+        setDurationHours(estimateDuration(start, end));
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -101,6 +108,10 @@ export default function UpdateSessionPage() {
       setSaveError('Select at least one week');
       return;
     }
+    if (hoursBetween(startTime, endTime) === null) {
+      setSaveError('End time must be after start time');
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -116,6 +127,8 @@ export default function UpdateSessionPage() {
       });
       const newRoomName = rooms.find((r) => String(r.id) === String(roomId))?.name ?? session.roomName;
       const message = `${session.moduleCode} — ${session.moduleName} moved to ${dayOfWeek} ${startTime}, ${newRoomName}`;
+      // going straight back to wherever this update resolves - Violations for constraints,
+      // Changes in Queue for change requests - with a confirmation naming exactly what changed
       const destination = relatedRequest?.type === 'CHANGE' ? '/timetabling-team/changes-in-queue' : '/timetabling-team/violations';
       navigate(destination, { state: { justUpdated: message } });
     } catch (err) {
@@ -146,15 +159,16 @@ export default function UpdateSessionPage() {
                 </select>
               </label>
 
-              <label className="field">
-                <span className="field__label">Start time</span>
-                <input className="field__input" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
-              </label>
-
-              <label className="field">
-                <span className="field__label">End time</span>
-                <input className="field__input" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
-              </label>
+              <DurationTimeFields
+                durationHours={durationHours}
+                startTime={startTime}
+                endTime={endTime}
+                onChange={(patch) => {
+                  if ('durationHours' in patch) setDurationHours(patch.durationHours);
+                  if ('startTime' in patch) setStartTime(patch.startTime);
+                  if ('endTime' in patch) setEndTime(patch.endTime);
+                }}
+              />
 
               <label className="field">
                 <span className="field__label">Room</span>

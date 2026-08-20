@@ -17,6 +17,37 @@ export const DURATIONS = [
   { value: 2, label: '2 hours' },
 ];
 
+// half-hour-granularity duration options for DurationTimeFields
+// (Change Request / Update Session / Add Session)
+export const FLEXIBLE_DURATIONS = [
+  { value: 0.5, label: '30 mins' },
+  { value: 1, label: '1 hour' },
+  { value: 1.5, label: '1.5 hours' },
+  { value: 2, label: '2 hours' },
+  { value: 2.5, label: '2.5 hours' },
+  { value: 3, label: '3 hours' },
+];
+
+// computes an end time from a start time + duration in hours
+export function addHours(timeStr, hours) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  const total = h * 60 + m + hours * 60;
+  const hh = String(Math.floor((total / 60) % 24)).padStart(2, '0');
+  const mm = String(total % 60).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
+// the reverse: derives a duration (rounded to the nearest half hour) from a start + end time
+export function hoursBetween(startStr, endStr) {
+  if (!startStr || !endStr) return null;
+  const [sh, sm] = startStr.split(':').map(Number);
+  const [eh, em] = endStr.split(':').map(Number);
+  const diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
+  if (diffMinutes <= 0) return null;
+  return Math.round(diffMinutes / 30) / 2;
+}
+
 // common on-the-hour teaching slots
 export const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 

@@ -42,7 +42,7 @@ export default function Layout({ children }) {
     { to: '/timetabling-team/change-requests', label: 'Changes' },
     { to: '/timetabling-team/violations', label: violationCount > 0 ? `Violations (${violationCount})` : 'Violations' },
     { to: '/timetabling-team/changes-in-queue', label: changesInQueueCount > 0 ? `Changes in Queue (${changesInQueueCount})` : 'Changes in Queue' },
-    { to: '/timetabling-team/academic-year', label: 'Year Settings' },
+    { to: '/timetabling-team/session-management', label: 'Session Management' },
   ];
 
   const links = user?.role === 'LECTURER' ? lecturerLinks : teamLinks;

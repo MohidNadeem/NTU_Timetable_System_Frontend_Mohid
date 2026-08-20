@@ -573,6 +573,13 @@ legend.field__label {
   color: var(--ink-soft);
 }
 
+.violation-compare__group-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ntu-pink-dark);
+  margin-bottom: 6px;
+}
+
 /* ---------- Timetable week nav + filters (Increment 0) ---------- */
 
 .week-nav {
@@ -669,6 +676,25 @@ legend.field__label {
   padding: 10px;
 }
 
+.session-card--overridden {
+  border-color: var(--ntu-pink);
+  background: #fdf2f8;
+}
+
+.session-card__override-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  background: var(--ntu-pink);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
 .session-card__time {
   font-size: 12px;
   font-weight: 700;
@@ -728,6 +754,27 @@ legend.field__label {
   gap: 16px;
 }
 
+/* always exactly 2 columns (unlike form-grid's auto-fit) - for field pairs that should
+   never split across lines regardless of container width, e.g. a From/To date or time pair */
+.field-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* claims 2 columns' worth of width when nested as an item inside a parent auto-fit grid
+   (e.g. DurationTimeFields' Start/End pair sitting inside a form-grid alongside other fields) -
+   has no effect when field-row-2 is used standalone, since there's nothing to span into */
+.field-row-2--span {
+  grid-column: span 2;
+}
+
+@media (max-width: 480px) {
+  .field-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- Week picker ---------- */
 
 .week-picker {
@@ -754,4 +801,139 @@ legend.field__label {
   color: var(--ink-soft);
   border-top: 1px solid var(--border);
   margin-top: 24px;
+}
+
+/* ---------- Calendar grid (week-view Timetable) ---------- */
+
+.calendar__scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.calendar {
+  min-width: 820px;
+}
+
+.calendar__header,
+.calendar__body {
+  display: grid;
+  grid-template-columns: 56px repeat(5, 1fr);
+}
+
+.calendar__header {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.calendar__gutter-header {
+  border-right: 1px solid var(--border);
+}
+
+.calendar__day-header {
+  padding: 10px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+
+.calendar__day-header:last-child {
+  border-right: none;
+}
+
+.calendar__body {
+  position: relative;
+}
+
+.calendar__gutter,
+.calendar__day-col {
+  height: 100%;
+  position: relative;
+  border-right: 1px solid var(--border);
+}
+
+.calendar__day-col:last-child {
+  border-right: none;
+}
+
+.calendar__hour-label {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  text-align: right;
+  padding: 2px 6px 0 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border);
+}
+
+.calendar__hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--border);
+}
+
+.calendar__empty {
+  position: absolute;
+  top: 40%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 11px;
+  margin: 0;
+}
+
+.calendar__event {
+  position: absolute;
+  box-sizing: border-box;
+  background: #fdf2f8;
+  border: 1px solid var(--ntu-pink);
+  border-left: 3px solid var(--ntu-pink-dark);
+  border-radius: 4px;
+  padding: 3px 5px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-size: 10.5px;
+  cursor: default;
+}
+
+.calendar__event--overridden {
+  background: #fff0f6;
+  box-shadow: 0 0 0 1px var(--ntu-pink-dark) inset;
+}
+
+.calendar__event-time {
+  font-weight: 700;
+  color: var(--ntu-pink-dark);
+  font-size: 10px;
+}
+
+.calendar__event-badge {
+  margin-left: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--ntu-pink);
+  color: white;
+  padding: 1px 4px;
+  border-radius: 999px;
+}
+
+.calendar__event-title {
+  font-weight: 700;
+  font-size: 11px;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.25;
+}
+
+.calendar__event-meta {
+  font-size: 9.5px;
+  color: var(--ink-soft);
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.25;
 }

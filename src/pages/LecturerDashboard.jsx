@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import StatusDonutChart from '../components/StatusDonutChart';
+import CategoryBarChart from '../components/CategoryBarChart';
 import { api } from '../api/client';
-import { STATUS_LABELS, changeCategoryLabel } from '../api/constraintOptions';
+import { STATUS_LABELS } from '../api/constraintOptions';
 
 export default function LecturerDashboard() {
   const [dashboard, setDashboard] = useState(null);
@@ -52,50 +54,59 @@ export default function LecturerDashboard() {
           )}
         </div>
 
-        <div className="card">
-          <div className="card__header-row">
-            <h2 className="card__title">My constraint requests</h2>
-            <Link className="btn btn--primary" to="/lecturer/requests">Submit a constraint</Link>
-          </div>
+        <div className="dashboard-split">
+          <div className="card">
+            <div className="card__header-row">
+              <h2 className="card__title">My constraint requests</h2>
+              <Link className="btn btn--primary" to="/lecturer/requests">Submit</Link>
+            </div>
 
-          <div className="stat-grid">
-            {Object.entries(dashboard.requestStatusCounts).map(([status, count]) => (
-              <div key={status} className="stat-card">
-                <span className="stat-card__count">{count}</span>
-                <span className="stat-card__label">{STATUS_LABELS[status] ?? status}</span>
-              </div>
-            ))}
-          </div>
+            <StatusDonutChart counts={dashboard.constraintStatusCounts} />
 
-          <p className="card__body" style={{ marginTop: 14 }}>
-            {dashboard.totalRequests} request{dashboard.totalRequests === 1 ? '' : 's'} submitted in total.
-            {' '}
-            <Link to="/lecturer/requests/history">View full list →</Link>
-          </p>
-        </div>
-
-        <div className="card">
-          <div className="card__header-row">
-            <h2 className="card__title">My change requests, by category</h2>
-            <Link className="btn btn--primary" to="/lecturer/requests/changes">Submit a change</Link>
-          </div>
-
-          {Object.keys(dashboard.changeCategoryCounts).length === 0 ? (
-            <p className="card__body">No change requests submitted yet.</p>
-          ) : (
-            <div className="stat-grid">
-              {Object.entries(dashboard.changeCategoryCounts).map(([category, count]) => (
-                <div key={category} className="stat-card">
+            <div className="stat-grid stat-grid--compact">
+              {Object.entries(dashboard.constraintStatusCounts).map(([status, count]) => (
+                <div key={status} className="stat-card">
                   <span className="stat-card__count">{count}</span>
-                  <span className="stat-card__label">{changeCategoryLabel(category)}</span>
+                  <span className="stat-card__label">{STATUS_LABELS[status] ?? status}</span>
                 </div>
               ))}
             </div>
-          )}
 
-          <p className="card__body" style={{ marginTop: 14 }}>
-            <Link to="/lecturer/requests/changes/history">View full list →</Link>
-          </p>
+            <p className="card__body" style={{ marginTop: 14 }}>
+              {dashboard.constraintTotal} submitted in total.{' '}
+              <Link to="/lecturer/requests/history">View full list →</Link>
+            </p>
+          </div>
+
+          <div className="card">
+            <div className="card__header-row">
+              <h2 className="card__title">My change requests</h2>
+              <Link className="btn btn--primary" to="/lecturer/requests/changes">Submit</Link>
+            </div>
+
+            <StatusDonutChart counts={dashboard.changeStatusCounts} />
+
+            <div className="stat-grid stat-grid--compact">
+              {Object.entries(dashboard.changeStatusCounts).map(([status, count]) => (
+                <div key={status} className="stat-card">
+                  <span className="stat-card__count">{count}</span>
+                  <span className="stat-card__label">{STATUS_LABELS[status] ?? status}</span>
+                </div>
+              ))}
+            </div>
+
+            {Object.keys(dashboard.changeCategoryCounts).length > 0 && (
+              <>
+                <h3 className="card__subtitle">By category</h3>
+                <CategoryBarChart counts={dashboard.changeCategoryCounts} />
+              </>
+            )}
+
+            <p className="card__body" style={{ marginTop: 14 }}>
+              {dashboard.changeTotal} submitted in total.{' '}
+              <Link to="/lecturer/requests/changes/history">View full list →</Link>
+            </p>
+          </div>
         </div>
       </div>
     </Layout>

@@ -235,6 +235,37 @@ h1, h2, h3 {
   gap: 10px;
 }
 
+/* smaller stat cards for use alongside a chart, where full-size cards would feel repetitive */
+.stat-grid--compact {
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.stat-grid--compact .stat-card__count {
+  font-size: 20px;
+}
+
+.stat-grid--compact .stat-card__label {
+  font-size: 10px;
+}
+
+/* two dashboard cards side by side on wide screens, stacking on narrow ones - used to put
+   constraints and change requests next to each other for direct comparison */
+.dashboard-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.card__subtitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin: 14px 0 6px;
+}
+
 .stat-card {
   display: flex;
   flex-direction: column;

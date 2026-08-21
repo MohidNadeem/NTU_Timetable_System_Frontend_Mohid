@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import StatusDonutChart from '../components/StatusDonutChart';
+import CategoryBarChart from '../components/CategoryBarChart';
 import { api } from '../api/client';
 import { STATUS_LABELS } from '../api/constraintOptions';
 
@@ -43,23 +45,53 @@ export default function TimetablingTeamDashboard() {
           </Link>
         </div>
 
-        <div className="card">
-          <h2 className="card__title">All constraint requests, by status</h2>
+        <div className="dashboard-split">
+          <div className="card">
+            <h2 className="card__title">All constraint requests, by status</h2>
 
-          <div className="stat-grid">
-            {Object.entries(dashboard.requestStatusCounts).map(([status, count]) => (
-              <div key={status} className="stat-card">
-                <span className="stat-card__count">{count}</span>
-                <span className="stat-card__label">{STATUS_LABELS[status] ?? status}</span>
-              </div>
-            ))}
+            <StatusDonutChart counts={dashboard.constraintStatusCounts} />
+
+            <div className="stat-grid stat-grid--compact">
+              {Object.entries(dashboard.constraintStatusCounts).map(([status, count]) => (
+                <div key={status} className="stat-card">
+                  <span className="stat-card__count">{count}</span>
+                  <span className="stat-card__label">{STATUS_LABELS[status] ?? status}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="card__body" style={{ marginTop: 14 }}>
+              {dashboard.constraintTotal} submitted across all lecturers.{' '}
+              <Link to="/timetabling-team/requests">Review requests →</Link>
+            </p>
           </div>
 
-          <p className="card__body" style={{ marginTop: 14 }}>
-            {dashboard.totalRequests} request{dashboard.totalRequests === 1 ? '' : 's'} submitted across all lecturers.
-            {' '}
-            <Link to="/timetabling-team/requests">Review requests →</Link>
-          </p>
+          <div className="card">
+            <h2 className="card__title">All change requests, by status</h2>
+
+            <StatusDonutChart counts={dashboard.changeStatusCounts} />
+
+            <div className="stat-grid stat-grid--compact">
+              {Object.entries(dashboard.changeStatusCounts).map(([status, count]) => (
+                <div key={status} className="stat-card">
+                  <span className="stat-card__count">{count}</span>
+                  <span className="stat-card__label">{STATUS_LABELS[status] ?? status}</span>
+                </div>
+              ))}
+            </div>
+
+            {Object.keys(dashboard.changeCategoryCounts).length > 0 && (
+              <>
+                <h3 className="card__subtitle">By category</h3>
+                <CategoryBarChart counts={dashboard.changeCategoryCounts} />
+              </>
+            )}
+
+            <p className="card__body" style={{ marginTop: 14 }}>
+              {dashboard.changeTotal} submitted across all lecturers.{' '}
+              <Link to="/timetabling-team/change-requests">Review requests →</Link>
+            </p>
+          </div>
         </div>
       </div>
     </Layout>

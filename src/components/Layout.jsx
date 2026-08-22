@@ -3,6 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import Footer from './Footer';
+import NotificationBell from './NotificationBell';
+import MoreNavMenu from './MoreNavMenu';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -42,15 +44,31 @@ export default function Layout({ children }) {
     { to: '/timetabling-team/change-requests', label: 'Changes' },
     { to: '/timetabling-team/violations', label: violationCount > 0 ? `Violations (${violationCount})` : 'Violations' },
     { to: '/timetabling-team/changes-in-queue', label: changesInQueueCount > 0 ? `Changes in Queue (${changesInQueueCount})` : 'Changes in Queue' },
+  ];
+  // less frequently needed than the live-count items above - added in dropdown
+  const teamOverflowLinks = [
     { to: '/timetabling-team/session-management', label: 'Session Management' },
   ];
 
-  const links = user?.role === 'LECTURER' ? lecturerLinks : teamLinks;
+  const adminLinks = [
+    { to: '/admin', label: 'Dashboard' },
+    { to: '/admin/users', label: 'Users' },
+    { to: '/admin/courses', label: 'Courses' },
+    { to: '/admin/modules', label: 'Modules' },
+    { to: '/admin/email-log', label: 'Email Log' },
+  ];
+
+  const links = user?.role === 'LECTURER' ? lecturerLinks
+    : user?.role === 'TIMETABLING_TEAM' ? teamLinks
+    : user?.role === 'ADMIN' ? adminLinks
+    : [];
+
+  const overflowLinks = user?.role === 'TIMETABLING_TEAM' ? teamOverflowLinks : [];
 
   // routes with sub-pages (e.g. /requests/:id) need exact matching so the parent link
   // doesn't stay highlighted while on a child page
   const exactMatchRoutes = new Set([
-    '/lecturer', '/timetabling-team',
+    '/lecturer', '/timetabling-team', '/admin',
     '/lecturer/requests', '/lecturer/requests/changes',
     '/timetabling-team/requests', '/timetabling-team/change-requests',
   ]);
@@ -75,11 +93,13 @@ export default function Layout({ children }) {
                 {link.label}
               </NavLink>
             ))}
+            {overflowLinks.length > 0 && <MoreNavMenu items={overflowLinks} />}
           </nav>
         )}
 
         {user && (
           <div className="app-header__user">
+            <NotificationBell />
             <span className="app-header__user-name">{user.fullName}</span>
             <span className="app-header__user-role">{user.role.replace('_', ' ')}</span>
             <button className="btn btn--ghost" onClick={handleLogout}>Log out</button>

@@ -1,9 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import { roleHomePath } from './api/constraintOptions';
 
 import LoginPage from './pages/LoginPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsersPage from './pages/AdminUsersPage';
+import AdminCoursesPage from './pages/AdminCoursesPage';
+import AdminModulesPage from './pages/AdminModulesPage';
+import AdminEmailLogPage from './pages/AdminEmailLogPage';
 import LecturerDashboard from './pages/LecturerDashboard';
 import TimetablingTeamDashboard from './pages/TimetablingTeamDashboard';
 import TimetablePage from './pages/TimetablePage';
@@ -27,7 +33,7 @@ function HomeRedirect() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
   if (user.mustChangePassword) return <Navigate to="/change-password" replace />;
-  return <Navigate to={user.role === 'LECTURER' ? '/lecturer' : '/timetabling-team'} replace />;
+  return <Navigate to={roleHomePath(user.role)} replace />;
 }
 
 export default function App() {
@@ -39,7 +45,47 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
 
-          {/* wrapping lecturer routes in ProtectedRoute so a timetabling-team login gets bounced out */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <AdminUsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/courses"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <AdminCoursesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/modules"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <AdminModulesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/email-log"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <AdminEmailLogPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/lecturer"
             element={

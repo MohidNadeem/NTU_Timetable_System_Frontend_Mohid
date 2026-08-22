@@ -998,3 +998,167 @@ legend.field__label {
   word-break: break-word;
   line-height: 1.25;
 }
+
+/* ---------- Notification bell ---------- */
+
+.notif-bell {
+  position: relative;
+}
+
+.notif-bell__trigger {
+  position: relative;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  line-height: 1;
+}
+
+.notif-bell__trigger:hover {
+  background: var(--bg);
+}
+
+.notif-bell__badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--danger);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+.notif-bell__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* resetting the inherited white-space:nowrap from .app-header__user (an ancestor) - that's
+     needed there so the user's name/role/logout button don't wrap, but position:absolute here
+     doesn't break CSS inheritance, so without this override every notification message was
+     rendering as one unbroken line and overflowing the dropdown's width */
+  white-space: normal;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 50;
+}
+
+.notif-bell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+}
+
+.notif-bell__mark-all {
+  background: none;
+  border: none;
+  color: var(--ntu-pink);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.notif-bell__item {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.notif-bell__item:last-child {
+  border-bottom: none;
+}
+
+.notif-bell__item:hover {
+  background: var(--bg);
+}
+
+.notif-bell__item--unread {
+  background: #fdf2f8;
+}
+
+.notif-bell__item--unread:hover {
+  background: #fce6f0;
+}
+
+.notif-bell__message {
+  font-size: 12.5px;
+  color: var(--ink);
+  margin: 0 0 4px;
+  line-height: 1.4;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.notif-bell__time {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+/* ---------- More nav dropdown ---------- */
+
+.more-nav {
+  position: relative;
+  display: inline-block;
+}
+
+.more-nav__trigger {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.more-nav__dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 50;
+  padding: 6px;
+}
+
+.more-nav__item {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.more-nav__item:hover {
+  background: var(--bg);
+}
+
+.more-nav__item.is-active {
+  background: #fdf2f8;
+  color: var(--ntu-pink-dark);
+  font-weight: 600;
+}

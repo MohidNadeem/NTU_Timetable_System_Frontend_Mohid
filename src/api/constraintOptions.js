@@ -193,3 +193,13 @@ export function orderRoomsBySuggestion(allRooms, suggestedNames = [], currentRoo
   const rest = allRooms.filter((r) => !priority.includes(r.name));
   return { ordered: [...priorityRooms, ...rest], defaultId: priorityRooms[0]?.id ?? null };
 }
+
+// which route each role lands on after login / when redirected away from a page they can't access
+export function roleHomePath(role) {
+  switch (role) {
+    case 'ADMIN': return '/admin';
+    case 'LECTURER': return '/lecturer';
+    case 'TIMETABLING_TEAM': return '/timetabling-team';
+    default: return '/login';
+  }
+}

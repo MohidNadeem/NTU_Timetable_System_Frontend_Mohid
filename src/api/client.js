@@ -38,11 +38,16 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
   }
 
   if (res.status === 204) return null;
-  return res.json();
+
+  // some endpoints (e.g. void-returning DELETE handlers)
+  const text = await res.text();
+  if (!text) return null;
+  return JSON.parse(text);
 }
 
 export const api = {
   get: (path) => request(path),
   post: (path, body, opts = {}) => request(path, { method: 'POST', body, ...opts }),
   put: (path, body) => request(path, { method: 'PUT', body }),
+  delete: (path) => request(path, { method: 'DELETE' }),
 };

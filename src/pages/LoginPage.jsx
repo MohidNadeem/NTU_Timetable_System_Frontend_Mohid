@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { roleHomePath } from '../api/constraintOptions';
 import Footer from '../components/Footer';
 
 export default function LoginPage() {
@@ -23,7 +24,7 @@ export default function LoginPage() {
         navigate('/change-password');
         return;
       }
-      navigate(user.role === 'LECTURER' ? '/lecturer' : '/timetabling-team');
+      navigate(roleHomePath(user.role));
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {
